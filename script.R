@@ -14,7 +14,7 @@ paniers <- read.csv2(filename,sep = ";",header=TRUE);
 filename = "/Users/admin-local/Documents/R/challengeSncf/sncf-lignes-par-gares-idf.csv";
 lignesgares <- read.csv2(filename,sep = ";",header=TRUE);
 
-## donnÃ©es apprentissage
+## données apprentissage
 
 nb = dim(garesRaw)[1];
 gares = matrix(data = 0, nrow = nb, ncol = 2+dim(lignesgares)[2]-2+1);
@@ -48,7 +48,7 @@ for (j in 1:dim(paniers)[1]){
 }
 
 
-## donnÃ©es test
+## données test
 
 
 nb = dim(garesTestRaw)[1];
@@ -71,7 +71,7 @@ for (j in 1:dim(paniers)[1]){
 	}
 }
 
-## analyse en composante principale pour voir comment les donnÃ©es se rÃ©partissent les unes par rapport aux autres
+## analyse en composante principale pour voir comment les données se répartissent les unes par rapport aux autres
 pr = prcomp(gares[,3:22], scale = TRUE);
 plot.new();
 for (i in (1:nb)){
@@ -82,3 +82,29 @@ for (i in (1:nb)){
 pr$rotation[,1]%*%gares[1,3:22]
 
 biplot(prcomp(gares[,3:22], scale = TRUE))
+
+
+## linear discriminant analysis
+library(MASS)
+x <-lda(gares[,3:22], gares[,2])
+y <- predict(x, garesTest[,3:22])$class
+
+garesTest[,2] = y
+
+res = matrix(data = 0, nrow = dim(garesTest)[1], ncol = 2)
+for (i in 1:dim(garesTest)[1]){
+	res[i,1] = garesTest[i,1];
+	if (garesTest[i,2] == 1){
+		res[i,2] = "moins de 300";
+	} else if (garesTest[i,2] == 2){
+		res[i,2] = "entre 300 et 1000";
+	} else if (garesTest[i,2] == 3){
+		res[i,2] = "entre 1000 et 5000";
+	} else if (garesTest[i,2] == 4){
+		res[i,2] = "entre 5000 et 15000";
+	} else if (garesTest[i,2] == 5){
+		res[i,2] = "plus de 15000";
+	}
+}
+# attention changer séparateur ";", et nom des colonnes Code UIC; Classe estimée
+write.csv(res, file = "/Users/admin-local/Documents/R/challengeSncf/prediction.csv",row.names=FALSE, col.names =FALSE, sep";") 
